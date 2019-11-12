@@ -1,0 +1,25 @@
+FROM golang:1.13.4-stretch@sha256:a42ff54315faab1c5baea614f80c635f02ae06f271491f80484a86e9081c0972 as build
+RUN apt update && apt install -y git
+ARG source=https://github.com/bitnami-labs/sealed-secrets.git
+ARG release=v0.9.4
+
+#
+RUN mkdir -p /go/src/github.com/bitnami-labs/
+WORKDIR /go/src/github.com/bitnami-labs/
+RUN git clone --depth 1 --single-branch --branch ${release} ${source}
+WORKDIR /go/src/github.com/bitnami-labs/sealed-secrets
+RUN ls -lsh; git status
+RUN VERSION=$(git rev-parse HEAD); go build -o /tmp/controller -mod=vendor -ldflags "-X main.VERSION=${VERSION}" ./cmd/controller
+
+RUN ls -lsh /tmp/
+
+
+# Ideally we could use the "static" flavour but let's first start with the base flavour (which has glibc).
+# FROM gcr.io/distroless/base@sha256:edc3643ddf96d75032a55e240900b68b335186f1e5fea0a95af3b4cc96020b77
+FROM busybox
+COPY --from=build /tmp/controller /usr/local/bin/
+RUN ls -lah /usr/local/bin
+RUN chmod +x /usr/local/bin/controller
+
+EXPOSE 8080
+ENTRYPOINT ["controller"]
