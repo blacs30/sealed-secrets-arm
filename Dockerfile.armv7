@@ -1,4 +1,5 @@
-FROM golang:1.13.4-stretch@sha256:a42ff54315faab1c5baea614f80c635f02ae06f271491f80484a86e9081c0972 as build
+FROM golang:1.13.4-stretch@sha256:02ca4f0b018977a544d867e40305eb92cf41c810c80075ac60dd02cf5abc550e as build
+# armv7
 RUN apt update && apt install -y git
 ARG source=https://github.com/bitnami-labs/sealed-secrets.git
 ARG release=v0.9.4
@@ -16,7 +17,8 @@ RUN ls -lsh /tmp/
 
 # Ideally we could use the "static" flavour but let's first start with the base flavour (which has glibc).
 # FROM gcr.io/distroless/base@sha256:edc3643ddf96d75032a55e240900b68b335186f1e5fea0a95af3b4cc96020b77
-FROM busybox
+# armv7
+FROM ubuntu:bionic@sha256:349e3988c0241304b39218794b8263325f7dc517317e00be37d43c3bdda9449b
 COPY --from=build /tmp/controller /usr/local/bin/
 RUN ls -lah /usr/local/bin
 RUN chmod +x /usr/local/bin/controller
